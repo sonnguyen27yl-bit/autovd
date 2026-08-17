@@ -1,8 +1,8 @@
 """Timestamped frame extraction for temporal visual analysis."""
 
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-import subprocess
 from tempfile import TemporaryDirectory
 
 
@@ -48,7 +48,7 @@ def sample_video_frames(
             str(max_frames),
             output_pattern,
         ]
-        subprocess.run(command, check=True, capture_output=True)
+        subprocess.run(command, check=True, capture_output=True, timeout=30)
 
         frame_paths = sorted(Path(temp_dir).glob("frame_*.png"))
         return [
