@@ -1,0 +1,1 @@
+"""MCP-facing AutoVD tools."""
