@@ -120,6 +120,40 @@ Chunk
 
 Dense verification is important because the product is fully automatic and prioritizes false-cut avoidance.
 
+## Verified temporal spike representation
+
+The MCP-side representation is no longer hypothetical.
+
+As of 2026-08-18, CI + MCP Inspector have runtime-verified this result shape over Streamable HTTP:
+
+```text
+TextContent: analysis instruction
+TextContent: timestamp_ms=0
+ImageContent: image/png frame
+TextContent: timestamp_ms=500
+ImageContent: image/png frame
+TextContent: timestamp_ms=1000
+ImageContent: image/png frame
+...
+```
+
+The tool also supplies structured metadata with a stable clip identifier, ordered timestamp list, and sampling interval.
+
+Verified:
+
+- FFmpeg extracts ordered PNG frames from a short video fixture;
+- timestamps are deterministic from the configured sampling interval;
+- the MCP SDK serializes PNG data as protocol `ImageContent`;
+- MCP Inspector can list and invoke the tool through the actual Streamable HTTP endpoint;
+- the Inspector result includes both timestamp text blocks and PNG image blocks.
+
+Still **unverified** and intentionally gated:
+
+- whether ChatGPT Developer Mode presents/grounds those interleaved blocks to the model with the temporal ordering needed for reliable anomaly localization;
+- whether the model can return anomaly intervals with acceptable cut precision.
+
+Do not interpret successful MCP transport as proof of model analysis quality. Task 2/3 remain the go/no-go gate.
+
 ## Motion/pacing workflow
 
 Motion-based pacing is separate from model anomaly analysis.
@@ -136,9 +170,23 @@ sustained low-motion region?
 
 The MVP does not ask ChatGPT whether a scene is narratively slow or boring.
 
-## Proposed MCP tools
+## MCP tools
 
-### `prepare_video_analysis`
+### Current spike tools
+
+#### `health`
+
+Returns a stable non-sensitive diagnostic payload and is used to prove basic MCP transport.
+
+#### `get_temporal_analysis_demo`
+
+Returns timestamped visual evidence for one server-operator-configured short fixture. The fixture path comes only from `AUTOVD_SPIKE_VIDEO`; the model cannot submit an arbitrary filesystem path.
+
+This is a temporary Gate A tool, not the final upload contract.
+
+### Planned production tools
+
+#### `prepare_video_analysis`
 
 Input concept:
 
@@ -148,11 +196,11 @@ videos: uploaded file array
 
 Produces a job with stable identifiers, media metadata, analysis chunks, and motion metadata.
 
-### `get_analysis_chunk`
+#### `get_analysis_chunk`
 
 Returns model-consumable timestamped visual evidence for one chunk and should support a denser sampling request around a suspicious interval.
 
-### `render_video`
+#### `render_video`
 
 Accepts only a structured validated edit plan. It must not accept arbitrary FFmpeg or shell syntax.
 
@@ -237,6 +285,10 @@ short AI video
 → ChatGPT returns structured anomaly interval(s)
 → result is compared with human labels
 ```
+
+### Current spike state
+
+The first two backend/protocol arrows are proven through FFmpeg tests and MCP Inspector. The ChatGPT model-analysis arrow remains pending and is the first point that requires a real ChatGPT Developer Mode connection.
 
 ### Spike pass condition
 
