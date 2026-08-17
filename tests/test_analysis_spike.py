@@ -1,5 +1,5 @@
-from pathlib import Path
 import subprocess
+from pathlib import Path
 
 from mcp.types import ImageContent, TextContent
 
@@ -23,6 +23,7 @@ def _make_video(path: Path) -> None:
         ],
         check=True,
         capture_output=True,
+        timeout=30,
     )
 
 
