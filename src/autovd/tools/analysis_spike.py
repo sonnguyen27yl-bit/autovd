@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 from mcp.server.mcpserver import Image
-from mcp.types import CallToolResult, TextContent
+from mcp.types import CallToolResult, ContentBlock, TextContent
 
 from autovd.media.frame_sampler import sample_video_frames
 
@@ -25,7 +25,7 @@ def build_temporal_evidence(
             is_error=True,
         )
 
-    content = [
+    content: list[ContentBlock] = [
         TextContent(
             type="text",
             text=(
