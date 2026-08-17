@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# AutoVD generated/user media
+jobs/
+.tmp/
+outputs/
+*.mp4
+*.mov
+*.mkv
+*.webm
+
+# Keep curated music via explicit allowlist later; never commit generated user media.
