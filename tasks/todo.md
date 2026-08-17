@@ -4,18 +4,22 @@ Source: `tasks/plan.md`
 
 ## Gate A — Prove the AI/MCP assumption first
 
-- [ ] **Task 1 — Minimal Python/MCP scaffold**
-  - [ ] Pin current Python/MCP dependencies from authoritative docs.
-  - [ ] Establish canonical dev/test/lint/type commands.
-  - [ ] Start one minimal MCP server/tool.
-  - [ ] Verify initialization/list/call with MCP Inspector.
+- [x] **Task 1 — Minimal Python/MCP scaffold**
+  - [x] Pin current Python/MCP dependencies from authoritative docs.
+  - [x] Establish canonical dev/test/lint/type commands.
+  - [x] Start one minimal MCP server/tool.
+  - [x] Verify initialization/list/call with MCP Inspector.
+
+  Verified in GitHub Actions on 2026-08-18: dependency install, Ruff lint/format, strict mypy, pytest, Streamable HTTP MCP startup, Inspector `tools/list`, `health`, and temporal image-result tool call all passed.
 
 - [ ] **Task 2 — ChatGPT temporal-vision spike**
-  - [ ] Extract ordered timestamped frames from one short AI clip.
-  - [ ] Expose the real temporal evidence through MCP.
+  - [x] Extract ordered timestamped frames from one short fixture clip.
+  - [x] Expose temporal timestamp/image evidence through the real MCP protocol.
   - [ ] Connect the real server in ChatGPT Developer Mode.
   - [ ] Obtain a structured anomaly interval from ChatGPT.
-  - [ ] Document the exact working MCP → model visual representation.
+  - [ ] Confirm and document that ChatGPT actually receives/interprets the timestamp + image ordering as intended.
+
+  Current stop point: MCP-side transport is proven; the remaining checks require a real ChatGPT Developer Mode app/session and therefore user/workspace participation.
 
 - [ ] **Task 3 — Evaluation harness + go/no-go**
   - [ ] Create a small human-labeled clean/anomaly corpus.
