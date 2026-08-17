@@ -4,6 +4,7 @@ from mcp.server import MCPServer
 
 from autovd import __version__
 from autovd.diagnostic import diagnostic_status
+from autovd.tools.analysis_spike import get_temporal_analysis_demo
 
 mcp = MCPServer(
     "AutoVD",
@@ -19,6 +20,9 @@ mcp = MCPServer(
 def health() -> dict[str, str]:
     """Return a stable, non-sensitive diagnostic payload."""
     return diagnostic_status()
+
+
+mcp.tool()(get_temporal_analysis_demo)
 
 
 def main() -> None:
