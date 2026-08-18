@@ -1,8 +1,8 @@
 import pytest
-from autovd.contracts.edit_plan import CutInterval
-from autovd.media.timeline import build_render_segments
 
+from autovd.contracts.edit_plan import CutInterval
 from autovd.media.motion import SpeedRegion
+from autovd.media.timeline import build_render_segments
 
 
 def test_build_render_segments_keeps_full_clip_without_edits() -> None:
