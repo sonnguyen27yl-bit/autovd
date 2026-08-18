@@ -5,6 +5,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+MAX_FRAME_EDGE = 640
+MAX_FRAME_PIXELS = MAX_FRAME_EDGE * MAX_FRAME_EDGE
+MAX_FRAME_PNG_BYTES = 2 * 1024 * 1024
+MAX_TOTAL_FRAME_BYTES = 12 * 1024 * 1024
+
+
+class FramePayloadLimitError(RuntimeError):
+    """Raised when model-facing temporal evidence exceeds configured safety bounds."""
+
 
 @dataclass(frozen=True, slots=True)
 class SampledFrame:
@@ -14,13 +23,22 @@ class SampledFrame:
     png_bytes: bytes
 
 
+def _png_dimensions(png_bytes: bytes) -> tuple[int, int]:
+    if len(png_bytes) < 24 or not png_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise FramePayloadLimitError("invalid analysis frame payload")
+    return (
+        int.from_bytes(png_bytes[16:20], "big"),
+        int.from_bytes(png_bytes[20:24], "big"),
+    )
+
+
 def sample_video_frames(
     video_path: Path,
     *,
     interval_ms: int = 500,
     max_frames: int = 16,
 ) -> list[SampledFrame]:
-    """Extract evenly spaced PNG frames from a trusted internal video path.
+    """Extract bounded, evenly spaced PNG frames from a trusted internal video path.
 
     External/user/model-controlled paths must be resolved and validated at the
     ingestion boundary before calling this function.
@@ -34,6 +52,10 @@ def sample_video_frames(
 
     with TemporaryDirectory(prefix="autovd-frames-") as temp_dir:
         output_pattern = str(Path(temp_dir) / "frame_%04d.png")
+        scale_filter = (
+            f"scale='min({MAX_FRAME_EDGE},iw)':'min({MAX_FRAME_EDGE},ih)':"
+            "force_original_aspect_ratio=decrease"
+        )
         command = [
             "ffmpeg",
             "-y",
@@ -43,15 +65,32 @@ def sample_video_frames(
             "-i",
             str(video_path),
             "-vf",
-            f"fps=1000/{interval_ms}",
+            f"fps=1000/{interval_ms},{scale_filter}",
             "-frames:v",
             str(max_frames),
             output_pattern,
         ]
         subprocess.run(command, check=True, capture_output=True, timeout=30)
 
-        frame_paths = sorted(Path(temp_dir).glob("frame_*.png"))
-        return [
-            SampledFrame(timestamp_ms=index * interval_ms, png_bytes=path.read_bytes())
-            for index, path in enumerate(frame_paths)
-        ]
+        frames: list[SampledFrame] = []
+        total_bytes = 0
+        for index, path in enumerate(sorted(Path(temp_dir).glob("frame_*.png"))):
+            encoded_bytes = path.stat().st_size
+            if encoded_bytes > MAX_FRAME_PNG_BYTES:
+                raise FramePayloadLimitError("frame payload exceeds configured limit")
+            total_bytes += encoded_bytes
+            if total_bytes > MAX_TOTAL_FRAME_BYTES:
+                raise FramePayloadLimitError("aggregate frame payload exceeds configured limit")
+
+            png_bytes = path.read_bytes()
+            width, height = _png_dimensions(png_bytes)
+            if (
+                width > MAX_FRAME_EDGE
+                or height > MAX_FRAME_EDGE
+                or width * height > MAX_FRAME_PIXELS
+            ):
+                raise FramePayloadLimitError("frame dimensions exceed configured limit")
+
+            frames.append(SampledFrame(timestamp_ms=index * interval_ms, png_bytes=png_bytes))
+
+        return frames

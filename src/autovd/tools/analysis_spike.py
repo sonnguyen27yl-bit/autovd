@@ -1,14 +1,23 @@
 """Narrow temporal-vision spike for proving ChatGPT + MCP feasibility."""
 
 import os
+import subprocess
 from pathlib import Path
 
 from mcp.server.mcpserver import Image
 from mcp.types import CallToolResult, ContentBlock, TextContent
 
-from autovd.media.frame_sampler import sample_video_frames
+from autovd.media.frame_sampler import FramePayloadLimitError, sample_video_frames
 
 SPIKE_VIDEO_ENV = "AUTOVD_SPIKE_VIDEO"
+SAFE_MEDIA_ERROR = "Configured spike media is unavailable or invalid."
+
+
+def _safe_media_error_result() -> CallToolResult:
+    return CallToolResult(
+        content=[TextContent(type="text", text=SAFE_MEDIA_ERROR)],
+        is_error=True,
+    )
 
 
 def build_temporal_evidence(
@@ -76,8 +85,16 @@ def get_temporal_analysis_demo(
             is_error=True,
         )
 
-    return build_temporal_evidence(
-        Path(configured_path),
-        interval_ms=interval_ms,
-        max_frames=max_frames,
-    )
+    try:
+        return build_temporal_evidence(
+            Path(configured_path),
+            interval_ms=interval_ms,
+            max_frames=max_frames,
+        )
+    except (
+        FileNotFoundError,
+        FramePayloadLimitError,
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+    ):
+        return _safe_media_error_result()

@@ -2,7 +2,11 @@
 
 ## Status
 
-Approved product intent; implementation not started.
+Approved product intent; Gate A implementation is in progress.
+
+Task 1 (minimal Python/MCP scaffold and transport proof) is implemented and verified. The MCP/backend portion of Task 2 is implemented: AutoVD can sample bounded timestamped frames and expose ordered timestamp/image evidence through MCP. Real ChatGPT Developer Mode interpretation and anomaly-evaluation evidence are still pending, so **Gate A has not passed yet**.
+
+Production upload ingestion, motion-region detection, edit-plan/timeline execution, music handling, and final rendering are not implemented yet.
 
 ## Objective
 
@@ -152,9 +156,22 @@ Initial chunk/sampling values are hypotheses, not locked requirements. They must
 
 The first technical spike must prove that ChatGPT + MCP can consume enough timestamped temporal visual context to locate obvious AI-generation anomalies reliably enough for a full-auto workflow.
 
-## Proposed MCP surface
+### Current temporal-spike implementation
 
-Keep the surface intentionally small.
+The current spike is deliberately narrow:
+
+- operator configures one short fixture with `AUTOVD_SPIKE_VIDEO`;
+- AutoVD samples ordered PNG frames with timestamps;
+- analysis images are downscaled before being loaded into memory;
+- frame dimensions, pixels, encoded bytes per frame, and aggregate encoded bytes are bounded;
+- MCP returns ordered timestamp text blocks followed by image content blocks;
+- unavailable/invalid configured media returns a model-safe error without exposing the configured filesystem path.
+
+This proves the MCP-side transport shape only. It does **not** prove that ChatGPT interprets the temporal ordering accurately enough for the product; that remains a real Developer Mode/evaluation gate.
+
+## MCP surface
+
+The production MVP surface remains intentionally small.
 
 ### `prepare_video_analysis`
 
@@ -191,74 +208,83 @@ Responsibilities:
 
 The backend must never accept arbitrary shell or FFmpeg command text from the model.
 
-## Proposed tech stack
+### Current temporary spike tools
 
-Not dependency-locked yet:
+Implemented now:
 
-- Python
-- official/current MCP SDK compatible with ChatGPT
-- FFmpeg
-- OpenCV
-- Pydantic or equivalent schema validation
-- pytest
+- `health` — non-sensitive diagnostic tool;
+- `get_temporal_analysis_demo` — operator-configured temporal evidence spike.
 
-Framework/library versions must be selected from current official documentation when implementation begins.
+These are not the final production MCP surface.
 
-## Proposed project structure
+## Current implementation stack
+
+Currently locked/used in the repository:
+
+- Python `>=3.12,<3.15` package contract; CI currently executes Python 3.13;
+- `mcp[cli]==2.0.0`;
+- `pydantic==2.13.4`;
+- FFmpeg as a system media dependency in CI/runtime;
+- pytest `9.1.1`;
+- Ruff `0.16.3`;
+- mypy `2.3.0` with strict checking;
+- `uv.lock` as the authoritative Python dependency lockfile.
+
+OpenCV is **not installed yet**. It remains optional for Task 5; use it only if deterministic motion analysis actually needs it.
+
+Framework/library versions must continue to be verified against current authoritative documentation before version-sensitive implementation changes.
+
+## Current project structure
 
 ```text
 src/
   autovd/
+    __init__.py
+    diagnostic.py
     mcp_server.py
-    tools/
-    contracts/
     media/
-    jobs/
-    config.py
-music/
-  library/
+      frame_sampler.py
+    tools/
+      analysis_spike.py
 tests/
-  unit/
-  integration/
-  fixtures/
+  test_analysis_spike.py
+  test_diagnostic.py
+  test_frame_sampler.py
+  test_mcp_server.py
 docs/
   specs/
   adr/
 tasks/
+.github/workflows/ci.yml
+pyproject.toml
+uv.lock
 ```
 
-The MCP transport/handlers should remain thin. Core timeline/media logic belongs in testable modules outside the handlers.
+Additional production modules from the implementation plan will be added only as their MVP tasks are built.
 
-## Commands
+## Repository commands
 
-No runnable project scaffold exists yet, so exact repository commands are **not defined**. Do not pretend proposed commands have been executed.
+Commands currently exercised by CI:
 
-The implementation plan must establish canonical commands for:
+```bash
+uv sync --all-groups --locked
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy src
+uv run pytest -q
+```
 
-- dev server;
-- focused/full tests;
-- lint/format;
-- type checking;
-- MCP protocol inspection.
+Run the current Streamable HTTP spike server with an operator-controlled fixture:
+
+```bash
+AUTOVD_SPIKE_VIDEO=/absolute/path/to/fixture.mp4 uv run autovd-mcp
+```
+
+The MCP endpoint is `/mcp` on the configured server transport. CI also exercises `tools/list`, `health`, and `get_temporal_analysis_demo` through MCP Inspector.
 
 ## Code style
 
 Prefer typed explicit domain contracts and small deterministic functions.
-
-Example target style:
-
-```python
-class CutInterval(BaseModel):
-    start_ms: int
-    end_ms: int
-    category: AnomalyCategory
-
-    @model_validator(mode="after")
-    def validate_interval(self) -> "CutInterval":
-        if self.start_ms >= self.end_ms:
-            raise ValueError("start_ms must be before end_ms")
-        return self
-```
 
 Conventions:
 
@@ -283,7 +309,9 @@ Prioritize deterministic behavior:
 - music selection;
 - timeline calculations;
 - safe command argument generation;
-- workspace/path isolation.
+- workspace/path isolation;
+- bounded temporal-frame payloads;
+- model-safe MCP error responses.
 
 ### Integration tests
 
@@ -321,7 +349,8 @@ Required design controls include:
 - no `shell=True`;
 - invoke FFmpeg with argument arrays;
 - URL/redirect/SSRF controls wherever server-side fetching is used;
-- bounded render/resource consumption;
+- bounded frame/render/resource consumption;
+- model-safe external errors without internal paths/stack traces;
 - no sensitive temporary URLs or raw media in normal logs;
 - temporary media cleanup/TTL;
 - explicit schema validation of every model-generated edit plan.
@@ -385,14 +414,14 @@ The MVP is successful when a user can upload multiple AI-generated clips in Chat
 
 ## Highest-risk assumption
 
-The highest-risk assumption is temporal visual analysis through ChatGPT + MCP. Before investing deeply in renderer architecture, build a narrow vertical spike:
+The highest-risk assumption remains temporal visual analysis through ChatGPT + MCP:
 
 ```text
 one short AI-generated clip
-→ extract timestamped frame sequence
-→ expose it through the MCP flow
+→ extract bounded timestamped frame sequence
+→ expose it through the real MCP flow
 → ask ChatGPT for anomaly intervals
 → compare against human labels
 ```
 
-If that spike cannot achieve acceptable precision, revisit the analysis architecture before building the full MVP.
+The MCP-side sequence extraction and transport are implemented. The real ChatGPT interpretation/evaluation stage remains pending. Until that evidence exists, Gate A is deferred rather than passed.
