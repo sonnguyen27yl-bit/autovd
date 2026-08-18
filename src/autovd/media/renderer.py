@@ -164,14 +164,12 @@ def build_render_command(
         for segment in plan.segments:
             output_label = f"v{segment_index}"
             filters.append(
-                (
-                    f"[{input_index}:v:0]"
-                    f"trim=start={_seconds(segment.start_ms)}:end={_seconds(segment.end_ms)},"
-                    f"setpts=(PTS-STARTPTS)/{segment.speed_factor:.6f},"
-                    f"scale={profile.width}:{profile.height}:force_original_aspect_ratio=decrease,"
-                    f"pad={profile.width}:{profile.height}:(ow-iw)/2:(oh-ih)/2,"
-                    f"fps={profile.fps},setsar=1[{output_label}]"
-                )
+                f"[{input_index}:v:0]"
+                f"trim=start={_seconds(segment.start_ms)}:end={_seconds(segment.end_ms)},"
+                f"setpts=(PTS-STARTPTS)/{segment.speed_factor:.6f},"
+                f"scale={profile.width}:{profile.height}:force_original_aspect_ratio=decrease,"
+                f"pad={profile.width}:{profile.height}:(ow-iw)/2:(oh-ih)/2,"
+                f"fps={profile.fps},setsar=1[{output_label}]"
             )
             video_labels.append(f"[{output_label}]")
             expected_duration += (segment.end_ms - segment.start_ms) / segment.speed_factor
