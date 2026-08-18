@@ -89,6 +89,26 @@ def test_output_size_is_bounded_before_resource_read(tmp_path: Path) -> None:
         store.set_output(job.job_id, output)
 
 
+def test_output_growth_is_rechecked_before_resource_read(tmp_path: Path) -> None:
+    source = tmp_path / "clip.mp4"
+    _make_video(source)
+    store = JobStore(
+        root=tmp_path / "jobs",
+        max_jobs=2,
+        ttl_seconds=60.0,
+        max_output_bytes=4,
+    )
+    job = store.create_from_staged([source], limits=_limits())
+    output = job.workspace.path / "output.mp4"
+    output.write_bytes(b"1234")
+    store.set_output(job.job_id, output)
+
+    output.write_bytes(b"12345")
+
+    with pytest.raises(JobStoreError, match="output size"):
+        store.read_output(job.job_id)
+
+
 def test_store_config_rejects_non_positive_bounds(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="ttl_seconds"):
         JobStore(root=tmp_path, max_jobs=1, ttl_seconds=0, max_output_bytes=1)
