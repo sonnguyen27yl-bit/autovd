@@ -38,6 +38,8 @@ def test_build_temporal_evidence_interleaves_timestamps_and_images(tmp_path: Pat
         "clip_id": "spike_fixture",
         "timestamps_ms": [0, 500, 1000],
         "sampling_interval_ms": 500,
+        "start_ms": 0,
+        "end_ms": None,
     }
     assert isinstance(result.content[0], TextContent)
 
@@ -51,3 +53,26 @@ def test_build_temporal_evidence_interleaves_timestamps_and_images(tmp_path: Pat
         assert isinstance(image_block, ImageContent)
         assert image_block.mime_type == "image/png"
         assert image_block.data
+
+
+def test_build_temporal_evidence_preserves_absolute_timestamps_for_subrange(tmp_path: Path) -> None:
+    video_path = tmp_path / "fixture.mp4"
+    _make_video(video_path)
+
+    result = build_temporal_evidence(
+        video_path,
+        clip_id="clip_0000",
+        start_ms=500,
+        end_ms=1500,
+        interval_ms=500,
+        max_frames=8,
+    )
+
+    assert result.is_error is False
+    assert result.structured_content == {
+        "clip_id": "clip_0000",
+        "timestamps_ms": [500, 1000],
+        "sampling_interval_ms": 500,
+        "start_ms": 500,
+        "end_ms": 1500,
+    }

@@ -1,4 +1,4 @@
-"""Narrow temporal-vision spike for proving ChatGPT + MCP feasibility."""
+"""Temporal evidence helpers for ChatGPT visual-analysis workflows."""
 
 import os
 import subprocess
@@ -23,11 +23,20 @@ def _safe_media_error_result() -> CallToolResult:
 def build_temporal_evidence(
     video_path: Path,
     *,
+    clip_id: str = "spike_fixture",
     interval_ms: int = 500,
     max_frames: int = 8,
+    start_ms: int = 0,
+    end_ms: int | None = None,
 ) -> CallToolResult:
-    """Build ordered timestamp/image blocks for one trusted short fixture clip."""
-    frames = sample_video_frames(video_path, interval_ms=interval_ms, max_frames=max_frames)
+    """Build ordered timestamp/image blocks for one trusted video interval."""
+    frames = sample_video_frames(
+        video_path,
+        interval_ms=interval_ms,
+        max_frames=max_frames,
+        start_ms=start_ms,
+        end_ms=end_ms,
+    )
     if not frames:
         return CallToolResult(
             content=[TextContent(type="text", text="No video frames could be extracted.")],
@@ -38,27 +47,24 @@ def build_temporal_evidence(
         TextContent(
             type="text",
             text=(
-                "AutoVD temporal-analysis spike. Inspect the ordered frames below. "
-                "CUT only a clear AI-generation failure; when uncertain, KEEP."
+                "Inspect the ordered frames below for clear AI-generation visual failures. "
+                "CUT only clear failures; when uncertain, KEEP."
             ),
         )
     ]
 
     for frame in frames:
-        content.append(
-            TextContent(
-                type="text",
-                text=f"timestamp_ms={frame.timestamp_ms}",
-            )
-        )
+        content.append(TextContent(type="text", text=f"timestamp_ms={frame.timestamp_ms}"))
         content.append(Image(data=frame.png_bytes, format="png").to_image_content())
 
     return CallToolResult(
         content=content,
         structured_content={
-            "clip_id": "spike_fixture",
+            "clip_id": clip_id,
             "timestamps_ms": [frame.timestamp_ms for frame in frames],
             "sampling_interval_ms": interval_ms,
+            "start_ms": start_ms,
+            "end_ms": end_ms,
         },
         is_error=False,
     )
@@ -68,11 +74,7 @@ def get_temporal_analysis_demo(
     interval_ms: int = 500,
     max_frames: int = 8,
 ) -> CallToolResult:
-    """Return timestamped visual evidence from the operator-configured spike clip.
-
-    The model cannot choose a filesystem path. The server operator configures the
-    fixture via AUTOVD_SPIKE_VIDEO until the upload ingestion boundary is built.
-    """
+    """Return timestamped visual evidence from the operator-configured spike clip."""
     configured_path = os.environ.get(SPIKE_VIDEO_ENV)
     if not configured_path:
         return CallToolResult(

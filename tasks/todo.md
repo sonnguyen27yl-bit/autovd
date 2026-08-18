@@ -12,16 +12,12 @@ Source: `tasks/plan.md`
   - [x] Start one minimal MCP server/tool.
   - [x] Verify initialization/list/call with MCP Inspector.
 
-  Verified in GitHub Actions on 2026-08-18: dependency install, Ruff lint/format, strict mypy, pytest, Streamable HTTP MCP startup, Inspector `tools/list`, `health`, and temporal image-result tool call all passed.
-
 - [ ] **Task 2 — ChatGPT temporal-vision spike**
   - [x] Extract ordered timestamped frames from one short fixture clip.
   - [x] Expose temporal timestamp/image evidence through the real MCP protocol.
   - [ ] Connect the real server in ChatGPT Developer Mode.
   - [ ] Obtain a structured anomaly interval from ChatGPT.
   - [ ] Confirm and document that ChatGPT actually receives/interprets the timestamp + image ordering as intended.
-
-  Current stop point: MCP-side transport is proven; the remaining checks require a real ChatGPT Developer Mode app/session and therefore user/workspace participation.
 
 - [ ] **Task 3 — Evaluation harness + go/no-go**
   - [ ] Create a small human-labeled clean/anomaly corpus using real representative AI-generated footage.
@@ -41,16 +37,12 @@ Source: `tasks/plan.md`
   - [x] Preserve trusted input order metadata.
   - [x] Add focused boundary/integration tests.
 
-  Verified on the staged-media core boundary: `ffprobe` validates actual video content, user filenames are not reused internally, limits are caller-configured, symlink/non-file inputs are rejected, and workspace cleanup occurs on context exit. ChatGPT file-download/handoff remains a Task 8 adapter concern.
-
 - [x] **Task 5 — Frame sampling + motion detection**
   - [x] Support configurable sparse/dense timestamped sampling intervals.
   - [x] Implement deterministic motion scoring.
   - [x] Extract sustained low-motion regions.
   - [x] Keep thresholds/min duration/speed factor configurable.
   - [x] Add static/moving synthetic tests.
-
-  Verified in GitHub Actions on 2026-08-18: bounded 32×32 grayscale FFmpeg sampling distinguishes static synthetic footage from moving `testsrc2`; sustained low-motion runs are grouped deterministically and short low-motion runs are not accelerated. No OpenCV or semantic pacing dependency is used.
 
 - [x] **Task 6 — Edit-plan + timeline engine**
   - [x] Define strict typed CUT contracts.
@@ -60,9 +52,7 @@ Source: `tasks/plan.md`
   - [x] Resolve CUT vs speed-up conflicts.
   - [x] Add RED→GREEN unit tests for edge cases.
 
-  Verified in GitHub Actions on 2026-08-18: unknown anomaly categories/invalid ranges are rejected by schema; every candidate is clip/timestamp validated before uncertain candidates are kept; clear touching/overlapping CUTs merge deterministically; CUT takes precedence over overlapping speed-up regions; fully cut clips yield no render segments. Runtime tests also caught and fixed an adjacent-boundary iteration bug before merge.
-
-> **Gate B passes:** Tasks 4–6 now have stable deterministic contracts with focused runtime tests. This does not change the deferred status of Gate A.
+> **Gate B passes:** Tasks 4–6 have stable deterministic contracts with focused runtime tests. This does not change the deferred status of Gate A.
 
 ## Gate C — Complete product path
 
@@ -76,42 +66,43 @@ Source: `tasks/plan.md`
   - [x] Render/probe one playable MP4.
   - [x] Add integration tests with tiny fixture videos.
 
-  Verified in GitHub Actions on 2026-08-18: real FFmpeg integration tests rendered H.264 video + AAC music, looped a short music fixture to video duration, preserved red→blue clip order even when plans were supplied out of order, applied a cut plus 2× speed-up to retained segments, and confirmed no source-video audio labels are used by the render graph. All-content-removed plans fail safely.
-
 - [ ] **Task 8 — Production MCP tools**
-  - [ ] Implement `prepare_video_analysis`.
-  - [ ] Implement `get_analysis_chunk` with dense re-sampling support.
-  - [ ] Implement `render_video` with structured edit-plan input only.
-  - [ ] Keep MCP handlers thin.
-  - [ ] Verify schemas/results with MCP Inspector.
-  - [ ] Verify expected tool selection in ChatGPT Developer Mode.
+  - [x] Implement `prepare_video_analysis` with the current ChatGPT file-parameter contract.
+  - [x] Implement `get_analysis_chunk` with bounded subrange/dense re-sampling support.
+  - [x] Implement `render_video` with structured edit-plan input only.
+  - [x] Keep MCP handlers thin and core behavior in testable services/modules.
+  - [x] Return rendered MP4 through an MCP resource template/`ResourceLink` instead of embedding the file in a tool result.
+  - [x] Verify production tool names, file-parameter metadata/schema, workflow results, and existing tools through pytest + MCP Inspector on 2026-08-18.
+  - [ ] Verify expected tool selection, temporal interpretation, and output UX in real ChatGPT Developer Mode.
+
+  Backend/protocol side is implemented and verified. The final ChatGPT-side check remains part of the deferred human gate and is not claimed as passed.
 
 - [ ] **Task 9 — Security/resource hardening**
-  - [ ] Bound expensive media/render operations.
-  - [ ] Prevent arbitrary paths/shell/FFmpeg text execution.
-  - [ ] Add SSRF controls if server-side URL fetching exists.
-  - [ ] Ensure logs exclude raw media/secrets/temporary credentials.
-  - [ ] Clean job media on terminal states + bounded fallback TTL.
-  - [ ] Add abuse/security tests.
-  - [ ] Review dependency/lockfile security.
+  - [ ] Bound remaining job/output lifetime and size risks.
+  - [x] Prevent arbitrary model paths and shell/FFmpeg command execution in implemented core.
+  - [x] Apply HTTPS/public-host/redirect/streaming size controls to server-side ChatGPT file fetching.
+  - [x] Keep normal tool errors model-safe and avoid logging raw media/signed file URLs.
+  - [ ] Add bounded fallback cleanup/expiry for active job media.
+  - [ ] Add focused abuse/security regression tests.
 
 - [ ] **Task 10 — E2E, CI, docs, Definition of Done**
-  - [ ] Run the complete ChatGPT → MCP → render flow.
-  - [ ] Verify final media streams/order/duration behavior.
-  - [ ] Rerun anomaly evaluation and confirm cut precision remains acceptable.
-  - [ ] Add CI quality gates using actual repository commands.
-  - [ ] Update README/spec/architecture with exact current truth and limits.
+  - [ ] Run the complete real ChatGPT → MCP → render flow.
+  - [x] Run the complete backend workflow with synthetic uploaded-media adapter → analysis chunk → render → output resource.
+  - [x] Verify final media streams/order/duration behavior with FFmpeg integration tests.
+  - [ ] Rerun anomaly evaluation against real ChatGPT and confirm cut precision remains acceptable.
+  - [x] Maintain CI gates using actual repository commands.
+  - [ ] Update README/spec/architecture/AGENTS with exact final backend state and deferred human gates.
   - [ ] Review security/integration/documentation/review evidence against project Definition of Done.
 
 ## MVP finish line
 
-- [ ] User uploads 1..N AI-generated clips in ChatGPT.
-- [ ] Obvious AI-generation failures are removed with high cut precision.
-- [ ] Ambiguous footage is kept by default.
-- [ ] Sustained low-motion regions are sped up deterministically.
-- [ ] Upload order is preserved.
-- [ ] Original audio is absent.
-- [ ] Exactly one permitted music track supplies output audio.
-- [ ] Final output is one playable video.
-- [ ] Model/tool/file inputs are validated before privileged execution.
-- [ ] Full relevant tests/checks and runtime verification have actually been executed.
+- [ ] User uploads 1..N AI-generated clips in real ChatGPT and receives the final result end-to-end.
+- [ ] Obvious AI-generation failures are removed with high cut precision on the real evaluation set.
+- [x] Ambiguous/uncertain edit candidates are kept by backend policy.
+- [x] Sustained low-motion regions are sped up deterministically.
+- [x] Upload order is preserved by the trusted core contract.
+- [x] Original source audio is absent from rendered output.
+- [x] Exactly one permitted music track supplies output audio in the renderer core.
+- [x] Final backend render is one playable H.264/AAC MP4.
+- [x] Implemented model/tool/file inputs are validated before privileged execution.
+- [ ] Full real ChatGPT integration/evaluation evidence is complete.
