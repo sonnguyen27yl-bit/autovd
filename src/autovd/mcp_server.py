@@ -117,7 +117,11 @@ def get_analysis_chunk(
 @mcp.tool(
     name="render_video",
     title="Render cleaned video",
-    annotations=ToolAnnotations(read_only_hint=False, open_world_hint=False, destructive_hint=False),
+    annotations=ToolAnnotations(
+        read_only_hint=False,
+        open_world_hint=False,
+        destructive_hint=False,
+    ),
 )
 def render_video_tool(job_id: str, edits: list[ClipEditRequest]) -> CallToolResult:
     """Render prepared clips using validated clear CUT decisions plus deterministic pacing."""
