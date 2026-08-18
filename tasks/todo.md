@@ -4,6 +4,8 @@ Source: `tasks/plan.md`
 
 ## Gate A — Prove the AI/MCP assumption first
 
+> **Execution note (2026-08-18):** the user explicitly approved deferring the remaining real ChatGPT Developer Mode/evaluation checks so deterministic backend work may continue. Gate A is **deferred, not passed**. Any real ChatGPT interpretation, cut-precision claim, production readiness claim, or MVP-complete claim still requires the pending Gate A evidence below.
+
 - [x] **Task 1 — Minimal Python/MCP scaffold**
   - [x] Pin current Python/MCP dependencies from authoritative docs.
   - [x] Establish canonical dev/test/lint/type commands.
@@ -22,13 +24,14 @@ Source: `tasks/plan.md`
   Current stop point: MCP-side transport is proven; the remaining checks require a real ChatGPT Developer Mode app/session and therefore user/workspace participation.
 
 - [ ] **Task 3 — Evaluation harness + go/no-go**
-  - [ ] Create a small human-labeled clean/anomaly corpus.
-  - [ ] Score cut precision separately from recall.
-  - [ ] Verify uncertain/clean footage is normally kept.
+  - [ ] Create a small human-labeled clean/anomaly corpus using real representative AI-generated footage.
+  - [x] Define the human-label and predicted-CUT scoring contract.
+  - [x] Score cut precision separately from recall.
+  - [ ] Verify uncertain/clean footage is normally kept by the real ChatGPT workflow.
   - [ ] Run the fixed set through the real ChatGPT/MCP workflow.
   - [ ] **GO only if cut precision meets the approved threshold (initial target >= 90%).**
 
-> If Gate A fails: stop the broader MVP build and revise the analysis architecture/spec/ADR before proceeding.
+> If real Gate A evidence fails, stop and revisit the analysis architecture/spec/ADR. The current deferral only authorizes deterministic backend implementation; it does not convert unknown AI quality into a pass.
 
 ## Gate B — Deterministic editing core
 
