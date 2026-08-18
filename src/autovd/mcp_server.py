@@ -54,9 +54,7 @@ def _build_workflow_service() -> WorkflowService:
                 speed_factor=_float_env("AUTOVD_SPEED_FACTOR", 2.0),
                 max_frames=_int_env("AUTOVD_MOTION_MAX_FRAMES", 256),
             ),
-            edit_limits=EditPlanLimits(
-                max_cut_intervals=_int_env("AUTOVD_MAX_CUT_INTERVALS", 64)
-            ),
+            edit_limits=EditPlanLimits(max_cut_intervals=_int_env("AUTOVD_MAX_CUT_INTERVALS", 64)),
             render_profile=RenderProfile(
                 width=_int_env("AUTOVD_OUTPUT_WIDTH", 1280),
                 height=_int_env("AUTOVD_OUTPUT_HEIGHT", 720),
