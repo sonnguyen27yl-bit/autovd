@@ -43,12 +43,14 @@ Source: `tasks/plan.md`
 
   Verified on the staged-media core boundary: `ffprobe` validates actual video content, user filenames are not reused internally, limits are caller-configured, symlink/non-file inputs are rejected, and workspace cleanup occurs on context exit. ChatGPT file-download/handoff remains a Task 8 adapter concern.
 
-- [ ] **Task 5 — Frame sampling + motion detection**
-  - [ ] Support coarse and dense timestamped sampling.
-  - [ ] Implement deterministic motion scoring.
-  - [ ] Extract sustained low-motion regions.
-  - [ ] Keep thresholds/min duration/speed factor configurable.
-  - [ ] Add static/moving synthetic tests.
+- [x] **Task 5 — Frame sampling + motion detection**
+  - [x] Support configurable sparse/dense timestamped sampling intervals.
+  - [x] Implement deterministic motion scoring.
+  - [x] Extract sustained low-motion regions.
+  - [x] Keep thresholds/min duration/speed factor configurable.
+  - [x] Add static/moving synthetic tests.
+
+  Verified in GitHub Actions on 2026-08-18: bounded 32×32 grayscale FFmpeg sampling distinguishes static synthetic footage from moving `testsrc2`; sustained low-motion runs are grouped deterministically and short low-motion runs are not accelerated. No OpenCV or semantic pacing dependency is used.
 
 - [ ] **Task 6 — Edit-plan + timeline engine**
   - [ ] Define strict typed CUT contracts.
