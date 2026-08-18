@@ -61,7 +61,10 @@ class SpeedRegion:
 
 
 def _normalized_frame_difference(left: bytes, right: bytes) -> float:
-    absolute_difference = sum(abs(left_byte - right_byte) for left_byte, right_byte in zip(left, right))
+    absolute_difference = sum(
+        abs(left_byte - right_byte)
+        for left_byte, right_byte in zip(left, right, strict=True)
+    )
     return absolute_difference / (255 * _FRAME_BYTES)
 
 
@@ -117,7 +120,7 @@ def measure_motion_scores(video_path: Path, config: MotionConfig) -> list[Motion
             end_ms=(index + 1) * config.frame_interval_ms,
             score=_normalized_frame_difference(left, right),
         )
-        for index, (left, right) in enumerate(zip(frames, frames[1:]))
+        for index, (left, right) in enumerate(zip(frames, frames[1:], strict=False))
     ]
 
 
@@ -139,15 +142,18 @@ def detect_low_motion_regions(
 
     def close_active_region() -> None:
         nonlocal active_start, active_end
-        if active_start is not None and active_end is not None:
-            if active_end - active_start >= config.min_low_motion_ms:
-                regions.append(
-                    SpeedRegion(
-                        start_ms=active_start,
-                        end_ms=active_end,
-                        speed_factor=config.speed_factor,
-                    )
+        if (
+            active_start is not None
+            and active_end is not None
+            and active_end - active_start >= config.min_low_motion_ms
+        ):
+            regions.append(
+                SpeedRegion(
+                    start_ms=active_start,
+                    end_ms=active_end,
+                    speed_factor=config.speed_factor,
                 )
+            )
         active_start = None
         active_end = None
 
