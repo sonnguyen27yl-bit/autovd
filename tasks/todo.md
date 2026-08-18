@@ -66,15 +66,17 @@ Source: `tasks/plan.md`
 
 ## Gate C — Complete product path
 
-- [ ] **Task 7 — FFmpeg renderer vertical slice**
-  - [ ] Normalize incompatible inputs.
-  - [ ] Remove CUT intervals.
-  - [ ] Apply configured speed-ups.
-  - [ ] Preserve clip upload order.
-  - [ ] Remove all source audio.
-  - [ ] Select one curated music track and record its ID.
-  - [ ] Render/probe one playable MP4.
-  - [ ] Add integration tests with tiny fixture videos.
+- [x] **Task 7 — FFmpeg renderer vertical slice**
+  - [x] Normalize retained segments into one configured output profile.
+  - [x] Remove CUT intervals by rendering only retained timeline segments.
+  - [x] Apply configured speed-ups.
+  - [x] Preserve trusted clip upload order.
+  - [x] Remove all source audio from the output graph.
+  - [x] Select one curated music track and record its ID.
+  - [x] Render/probe one playable MP4.
+  - [x] Add integration tests with tiny fixture videos.
+
+  Verified in GitHub Actions on 2026-08-18: real FFmpeg integration tests rendered H.264 video + AAC music, looped a short music fixture to video duration, preserved red→blue clip order even when plans were supplied out of order, applied a cut plus 2× speed-up to retained segments, and confirmed no source-video audio labels are used by the render graph. All-content-removed plans fail safely.
 
 - [ ] **Task 8 — Production MCP tools**
   - [ ] Implement `prepare_video_analysis`.
