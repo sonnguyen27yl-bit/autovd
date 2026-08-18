@@ -70,7 +70,7 @@ def build_render_segments(
     ordered_boundaries = sorted(boundaries)
 
     segments: list[RenderSegment] = []
-    for start_ms, end_ms in zip(ordered_boundaries, ordered_boundaries[1:], strict=True):
+    for start_ms, end_ms in zip(ordered_boundaries, ordered_boundaries[1:], strict=False):
         if any(cut.start_ms <= start_ms and end_ms <= cut.end_ms for cut in merged_cuts):
             continue
 
