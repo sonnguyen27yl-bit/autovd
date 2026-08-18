@@ -62,8 +62,7 @@ class SpeedRegion:
 
 def _normalized_frame_difference(left: bytes, right: bytes) -> float:
     absolute_difference = sum(
-        abs(left_byte - right_byte)
-        for left_byte, right_byte in zip(left, right, strict=True)
+        abs(left_byte - right_byte) for left_byte, right_byte in zip(left, right, strict=True)
     )
     return absolute_difference / (255 * _FRAME_BYTES)
 
@@ -111,8 +110,7 @@ def measure_motion_scores(video_path: Path, config: MotionConfig) -> list[Motion
         return []
 
     frames = [
-        payload[offset : offset + _FRAME_BYTES]
-        for offset in range(0, len(payload), _FRAME_BYTES)
+        payload[offset : offset + _FRAME_BYTES] for offset in range(0, len(payload), _FRAME_BYTES)
     ]
     return [
         MotionScore(
