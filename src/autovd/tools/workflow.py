@@ -176,9 +176,9 @@ class WorkflowService:
 
             plans: list[ClipRenderPlan] = []
             for clip in job.clips:
-                edit = edit_by_clip.get(clip.clip_id)
+                clip_edit = edit_by_clip.get(clip.clip_id)
                 cuts = validate_cut_candidates(
-                    edit.candidates if edit is not None else [],
+                    clip_edit.candidates if clip_edit is not None else [],
                     clip_id=clip.clip_id,
                     clip_duration_ms=clip.duration_ms,
                     limits=self.config.edit_limits,
