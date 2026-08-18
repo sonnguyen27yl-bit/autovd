@@ -52,15 +52,17 @@ Source: `tasks/plan.md`
 
   Verified in GitHub Actions on 2026-08-18: bounded 32×32 grayscale FFmpeg sampling distinguishes static synthetic footage from moving `testsrc2`; sustained low-motion runs are grouped deterministically and short low-motion runs are not accelerated. No OpenCV or semantic pacing dependency is used.
 
-- [ ] **Task 6 — Edit-plan + timeline engine**
-  - [ ] Define strict typed CUT contracts.
-  - [ ] Enforce `certainty == clear` for final CUT.
-  - [ ] Validate timestamps/enums/ranges.
-  - [ ] Sort/merge intervals deterministically.
-  - [ ] Resolve CUT vs speed-up conflicts.
-  - [ ] Add RED→GREEN unit tests for edge cases.
+- [x] **Task 6 — Edit-plan + timeline engine**
+  - [x] Define strict typed CUT contracts.
+  - [x] Enforce `certainty == clear` for final CUT.
+  - [x] Validate timestamps/enums/ranges.
+  - [x] Sort/merge intervals deterministically.
+  - [x] Resolve CUT vs speed-up conflicts.
+  - [x] Add RED→GREEN unit tests for edge cases.
 
-> Gate B passes only when Tasks 4–6 have stable contracts and focused tests passing.
+  Verified in GitHub Actions on 2026-08-18: unknown anomaly categories/invalid ranges are rejected by schema; every candidate is clip/timestamp validated before uncertain candidates are kept; clear touching/overlapping CUTs merge deterministically; CUT takes precedence over overlapping speed-up regions; fully cut clips yield no render segments. Runtime tests also caught and fixed an adjacent-boundary iteration bug before merge.
+
+> **Gate B passes:** Tasks 4–6 now have stable deterministic contracts with focused runtime tests. This does not change the deferred status of Gate A.
 
 ## Gate C — Complete product path
 
