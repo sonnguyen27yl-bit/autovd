@@ -35,11 +35,13 @@ Source: `tasks/plan.md`
 
 ## Gate B — Deterministic editing core
 
-- [ ] **Task 4 — Safe media ingestion + job workspace**
-  - [ ] Validate file/media/count/size/duration boundaries.
-  - [ ] Create isolated randomized ephemeral workspaces.
-  - [ ] Preserve trusted upload order metadata.
-  - [ ] Add focused boundary/integration tests.
+- [x] **Task 4 — Safe media ingestion + job workspace**
+  - [x] Validate staged file/media/count/size/duration boundaries.
+  - [x] Create isolated randomized ephemeral workspaces.
+  - [x] Preserve trusted input order metadata.
+  - [x] Add focused boundary/integration tests.
+
+  Verified on the staged-media core boundary: `ffprobe` validates actual video content, user filenames are not reused internally, limits are caller-configured, symlink/non-file inputs are rejected, and workspace cleanup occurs on context exit. ChatGPT file-download/handoff remains a Task 8 adapter concern.
 
 - [ ] **Task 5 — Frame sampling + motion detection**
   - [ ] Support coarse and dense timestamped sampling.
