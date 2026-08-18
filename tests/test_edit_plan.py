@@ -1,6 +1,4 @@
 import pytest
-from pydantic import ValidationError
-
 from autovd.contracts.edit_plan import (
     AnomalyCategory,
     CutCandidate,
@@ -8,6 +6,7 @@ from autovd.contracts.edit_plan import (
     EditPlanLimits,
     validate_cut_candidates,
 )
+from pydantic import ValidationError
 
 
 def _candidate(
