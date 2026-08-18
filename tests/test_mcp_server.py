@@ -17,10 +17,29 @@ async def _call_tool(name: str, arguments: dict[str, object]) -> CallToolResult:
 async def _exercise_server_without_spike_fixture() -> None:
     async with Client(mcp, raise_exceptions=True) as client:
         listed = await client.list_tools()
-        assert {tool.name for tool in listed.tools} == {
+        tools = {tool.name: tool for tool in listed.tools}
+        assert set(tools) == {
             "health",
+            "prepare_video_analysis",
+            "get_analysis_chunk",
+            "render_video",
             "get_temporal_analysis_demo",
         }
+
+        prepare = tools["prepare_video_analysis"]
+        assert prepare.meta == {"openai/fileParams": ["videos"]}
+        videos_schema = prepare.input_schema["properties"]["videos"]
+        file_schema = videos_schema["items"]
+        if "$ref" in file_schema:
+            ref_name = file_schema["$ref"].split("/")[-1]
+            file_schema = prepare.input_schema["$defs"][ref_name]
+        assert set(file_schema["properties"]) == {
+            "download_url",
+            "file_id",
+            "mime_type",
+            "file_name",
+        }
+        assert set(file_schema["required"]) == {"download_url", "file_id"}
 
         health_result = await client.call_tool("health", {})
         assert health_result.is_error is False
@@ -102,4 +121,6 @@ def test_configured_spike_media_is_callable(
         "clip_id": "spike_fixture",
         "timestamps_ms": [0, 500],
         "sampling_interval_ms": 500,
+        "start_ms": 0,
+        "end_ms": None,
     }
