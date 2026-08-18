@@ -4,11 +4,12 @@ from pathlib import Path
 
 import pytest
 from mcp import Client
+from mcp.types import CallToolResult, TextContent
 
 from autovd.mcp_server import mcp
 
 
-async def _call_tool(name: str, arguments: dict[str, object]) -> object:
+async def _call_tool(name: str, arguments: dict[str, object]) -> CallToolResult:
     async with Client(mcp, raise_exceptions=True) as client:
         return await client.call_tool(name, arguments)
 
@@ -55,11 +56,8 @@ def _make_video(path: Path) -> None:
     )
 
 
-def _result_text(result: object) -> str:
-    content = getattr(result, "content")
-    return " ".join(
-        block.text for block in content if getattr(block, "type", None) == "text"
-    )
+def _result_text(result: CallToolResult) -> str:
+    return " ".join(block.text for block in result.content if isinstance(block, TextContent))
 
 
 def test_tools_are_listed_and_callable_without_external_spike_env(
