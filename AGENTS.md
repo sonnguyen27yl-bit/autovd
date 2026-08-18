@@ -123,6 +123,25 @@ Do not rely on chat history as the only record of a durable project decision.
 
 ## Current implementation status
 
-Documentation-only initialization. No production code or dependency versions are locked yet.
+Gate A is in progress, not complete.
+
+Implemented and verified on the MCP/backend side:
+
+- Python project scaffold with locked dependencies;
+- MCP Python SDK v2 server using Streamable HTTP;
+- `health` diagnostic tool;
+- timestamped temporal frame sampling with bounded image dimensions/payloads;
+- `get_temporal_analysis_demo` returning ordered timestamp + image content blocks;
+- model-safe MCP errors for invalid/unavailable configured spike media;
+- pytest, Ruff, strict mypy, GitHub Actions CI, and MCP Inspector transport checks.
+
+Still pending before Gate A can pass:
+
+- connect the real server in ChatGPT Developer Mode;
+- verify ChatGPT interprets timestamp/image ordering correctly;
+- obtain structured anomaly intervals from real ChatGPT analysis;
+- run the human-labeled precision/recall evaluation.
+
+Production upload ingestion, motion-region detection, edit-plan/timeline processing, music handling, and final rendering are not implemented yet.
 
 Before implementing MCP or OpenAI-platform-specific behavior, verify current official OpenAI documentation rather than relying on memory.
