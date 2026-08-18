@@ -37,16 +37,18 @@ def sample_video_frames(
     *,
     interval_ms: int = 500,
     max_frames: int = 16,
+    start_ms: int = 0,
+    end_ms: int | None = None,
 ) -> list[SampledFrame]:
-    """Extract bounded, evenly spaced PNG frames from a trusted internal video path.
-
-    External/user/model-controlled paths must be resolved and validated at the
-    ingestion boundary before calling this function.
-    """
+    """Extract bounded, evenly spaced PNG frames from a trusted internal video path."""
     if interval_ms <= 0:
         raise ValueError("interval_ms must be greater than zero")
     if not 1 <= max_frames <= 64:
         raise ValueError("max_frames must be between 1 and 64")
+    if start_ms < 0:
+        raise ValueError("start_ms must be non-negative")
+    if end_ms is not None and end_ms <= start_ms:
+        raise ValueError("end_ms must be greater than start_ms")
     if not video_path.is_file():
         raise FileNotFoundError(video_path)
 
@@ -62,14 +64,21 @@ def sample_video_frames(
             "-hide_banner",
             "-loglevel",
             "error",
-            "-i",
-            str(video_path),
-            "-vf",
-            f"fps=1000/{interval_ms},{scale_filter}",
-            "-frames:v",
-            str(max_frames),
-            output_pattern,
         ]
+        if start_ms:
+            command.extend(["-ss", f"{start_ms / 1000:.3f}"])
+        command.extend(["-i", str(video_path)])
+        if end_ms is not None:
+            command.extend(["-t", f"{(end_ms - start_ms) / 1000:.3f}"])
+        command.extend(
+            [
+                "-vf",
+                f"fps=1000/{interval_ms},{scale_filter}",
+                "-frames:v",
+                str(max_frames),
+                output_pattern,
+            ]
+        )
         subprocess.run(command, check=True, capture_output=True, timeout=30)
 
         frames: list[SampledFrame] = []
@@ -91,6 +100,11 @@ def sample_video_frames(
             ):
                 raise FramePayloadLimitError("frame dimensions exceed configured limit")
 
-            frames.append(SampledFrame(timestamp_ms=index * interval_ms, png_bytes=png_bytes))
+            frames.append(
+                SampledFrame(
+                    timestamp_ms=start_ms + index * interval_ms,
+                    png_bytes=png_bytes,
+                )
+            )
 
         return frames
