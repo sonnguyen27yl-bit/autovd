@@ -40,7 +40,12 @@ def _build_workflow_service() -> WorkflowService:
     job_root = Path(os.environ.get("AUTOVD_JOB_ROOT", str(Path(gettempdir()) / "autovd-jobs")))
     music_dir = Path(os.environ.get("AUTOVD_MUSIC_DIR", "music/library"))
     return WorkflowService(
-        store=JobStore(root=job_root, max_jobs=_int_env("AUTOVD_MAX_ACTIVE_JOBS", 8)),
+        store=JobStore(
+            root=job_root,
+            max_jobs=_int_env("AUTOVD_MAX_ACTIVE_JOBS", 8),
+            ttl_seconds=_float_env("AUTOVD_JOB_TTL_SECONDS", 30 * 60),
+            max_output_bytes=_int_env("AUTOVD_MAX_OUTPUT_BYTES", 512 * 1024 * 1024),
+        ),
         config=WorkflowConfig(
             media_limits=MediaLimits(
                 max_clips=_int_env("AUTOVD_MAX_CLIPS", 8),
