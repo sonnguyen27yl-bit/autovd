@@ -15,15 +15,20 @@ from autovd.contracts.openai_files import OpenAIFile
 from autovd.jobs.store import JobStore, JobStoreError, PreparedJob
 from autovd.media.download import FileDownloadError, download_openai_files
 from autovd.media.frame_sampler import FramePayloadLimitError
-from autovd.media.ingest import MediaIngestError, MediaLimits
-from autovd.media.motion import MotionAnalysisError, MotionConfig, detect_low_motion_regions, measure_motion_scores
+from autovd.media.ingest import IngestedClip, MediaIngestError, MediaLimits
+from autovd.media.motion import (
+    MotionAnalysisError,
+    MotionConfig,
+    detect_low_motion_regions,
+    measure_motion_scores,
+)
 from autovd.media.renderer import (
     ClipRenderPlan,
     MusicTrack,
     RendererError,
     RenderProfile,
-    render_video as render_core_video,
 )
+from autovd.media.renderer import render_video as render_core_video
 from autovd.media.timeline import build_render_segments
 from autovd.tools.analysis_spike import build_temporal_evidence
 
@@ -150,7 +155,9 @@ class WorkflowService:
             subprocess.TimeoutExpired,
         ):
             return CallToolResult(
-                content=[TextContent(type="text", text="Analysis chunk is unavailable or invalid.")],
+                content=[
+                    TextContent(type="text", text="Analysis chunk is unavailable or invalid.")
+                ],
                 is_error=True,
             )
 
@@ -240,7 +247,7 @@ class WorkflowService:
             raise ValueError("rendered output is unavailable") from exc
 
     @staticmethod
-    def _find_clip(job: PreparedJob, clip_id: str):
+    def _find_clip(job: PreparedJob, clip_id: str) -> IngestedClip:
         for clip in job.clips:
             if clip.clip_id == clip_id:
                 return clip
