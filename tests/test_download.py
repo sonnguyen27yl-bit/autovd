@@ -56,9 +56,7 @@ def test_download_rejects_private_resolved_address(
     monkeypatch.setattr(
         socket,
         "getaddrinfo",
-        lambda *args, **kwargs: [
-            (socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 443))
-        ],
+        lambda *args, **kwargs: [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 443))],
     )
     file_value = OpenAIFile(download_url="https://files.example/video.mp4", file_id="file_1")
 
