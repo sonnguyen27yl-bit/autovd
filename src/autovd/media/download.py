@@ -4,7 +4,10 @@ import ipaddress
 import socket
 import urllib.error
 import urllib.request
+from collections.abc import Mapping
 from pathlib import Path
+from types import TracebackType
+from typing import Protocol, Self, cast
 from urllib.parse import urljoin, urlsplit
 
 from autovd.contracts.openai_files import OpenAIFile
@@ -16,6 +19,21 @@ _CHUNK_BYTES = 1024 * 1024
 
 class FileDownloadError(ValueError):
     """Raised when a ChatGPT-provided temporary file cannot be fetched safely."""
+
+
+class _DownloadResponse(Protocol):
+    headers: Mapping[str, str]
+
+    def read(self, amt: int = -1) -> bytes: ...
+
+    def __enter__(self) -> Self: ...
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: TracebackType | None,
+    ) -> None: ...
 
 
 class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
@@ -53,10 +71,10 @@ def _validate_public_https_url(url: str) -> None:
             raise FileDownloadError("file download host is not public")
 
 
-def _open_without_redirects(url: str, timeout_seconds: float) -> object:
+def _open_without_redirects(url: str, timeout_seconds: float) -> _DownloadResponse:
     opener = urllib.request.build_opener(_NoRedirectHandler())
     request = urllib.request.Request(url, headers={"User-Agent": "AutoVD/0.1"})
-    return opener.open(request, timeout=timeout_seconds)
+    return cast(_DownloadResponse, opener.open(request, timeout=timeout_seconds))
 
 
 def download_openai_files(
@@ -76,7 +94,7 @@ def download_openai_files(
     staged: list[Path] = []
     for index, file_value in enumerate(files):
         current_url = file_value.download_url
-        response: object | None = None
+        response: _DownloadResponse | None = None
         for redirect_count in range(_MAX_REDIRECTS + 1):
             _validate_public_https_url(current_url)
             try:
@@ -98,7 +116,7 @@ def download_openai_files(
         total_bytes = 0
         try:
             with response, output_path.open("wb") as output:
-                content_length = getattr(response, "headers").get("Content-Length")
+                content_length = response.headers.get("Content-Length")
                 if content_length is not None and int(content_length) > max_file_bytes:
                     raise FileDownloadError("file exceeds configured size limit")
                 while True:
