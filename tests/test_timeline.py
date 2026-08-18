@@ -46,11 +46,14 @@ def test_adjacent_segments_with_same_speed_are_combined() -> None:
 
 
 def test_fully_cut_clip_has_no_render_segments() -> None:
-    assert build_render_segments(
-        clip_duration_ms=1000,
-        cuts=[CutInterval(start_ms=0, end_ms=1000)],
-        speed_regions=[],
-    ) == []
+    assert (
+        build_render_segments(
+            clip_duration_ms=1000,
+            cuts=[CutInterval(start_ms=0, end_ms=1000)],
+            speed_regions=[],
+        )
+        == []
+    )
 
 
 def test_out_of_range_speed_region_is_rejected() -> None:
