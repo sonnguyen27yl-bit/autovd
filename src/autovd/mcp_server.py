@@ -110,7 +110,7 @@ def _build_workflow_service() -> WorkflowService:
 workflow_service = _build_workflow_service()
 
 
-@mcp.custom_route("/health", methods=["GET"])
+@mcp.custom_route("/health", methods=["GET"])  # type: ignore[untyped-decorator]
 async def http_health(_request: Request) -> JSONResponse:
     """Return a public, non-sensitive liveness response for deployment probes."""
     return JSONResponse({"status": "ok"})
