@@ -63,9 +63,9 @@ The deterministic/backend path is implemented through the MVP hardening slice:
 
 ### Still pending: real ChatGPT Gate A
 
-The backend and MCP protocol transport are proven, but **Gate A is deferred, not passed**. The following still require a real ChatGPT Developer Mode session and representative AI-generated footage:
+The backend and MCP protocol transport are proven, but **Gate A is deferred, not passed**. The following still require a real ChatGPT internal plugin/app session and representative AI-generated footage:
 
-1. connect AutoVD to ChatGPT;
+1. connect AutoVD to ChatGPT through the remote MCP URL;
 2. confirm ChatGPT receives/interprets timestamp + image ordering as intended;
 3. obtain structured anomaly intervals from real model analysis;
 4. run the fixed human-labeled anomaly corpus;
@@ -100,7 +100,7 @@ uv run pytest -q
 uv run autovd-mcp
 ```
 
-The local MCP endpoint is exposed at `http://127.0.0.1:8000/mcp` by the current entrypoint.
+The local MCP endpoint is exposed at `http://127.0.0.1:8000/mcp` by default.
 
 For the legacy temporal spike tool only, a server operator may configure:
 
@@ -109,6 +109,26 @@ AUTOVD_SPIKE_VIDEO=/absolute/path/to/short-test-video.mp4 uv run autovd-mcp
 ```
 
 Models/users cannot supply that filesystem path through the spike tool.
+
+## Remote server URL deployment
+
+AutoVD can be bound for container/remote deployment without changing the MCP surface:
+
+```text
+AUTOVD_HOST=0.0.0.0
+AUTOVD_PORT=8000
+AUTOVD_ALLOWED_HOSTS=autovd.example.com,autovd.example.com:*
+```
+
+For a valid HTTPS deployment, the internal ChatGPT plugin server URL is:
+
+```text
+https://autovd.example.com/mcp
+```
+
+A public non-sensitive liveness endpoint is available at `/health`.
+
+The repository includes a `Dockerfile` and a complete server-URL deployment guide at [docs/deploy-server-url.md](docs/deploy-server-url.md). The deployment must mount a server-owned permitted music library; copyrighted tracks are not shipped in this repository.
 
 ## MVP runtime configuration
 
@@ -129,6 +149,7 @@ These are operational defaults, not promises about future product limits.
 
 - [MVP specification](docs/specs/mvp.md)
 - [Architecture and workflow](docs/architecture.md)
+- [Server URL deployment](docs/deploy-server-url.md)
 - [ADR 0001 — ChatGPT + MCP architecture](docs/adr/0001-chatgpt-mcp.md)
 - [Implementation plan](tasks/plan.md)
 - [Task checklist](tasks/todo.md)

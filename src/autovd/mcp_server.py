@@ -5,7 +5,10 @@ from pathlib import Path
 from tempfile import gettempdir
 
 from mcp.server import MCPServer
+from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import CallToolResult, ToolAnnotations
+from starlette.requests import Request
+from starlette.responses import JSONResponse
 
 from autovd import __version__
 from autovd.contracts.edit_plan import EditPlanLimits
@@ -17,6 +20,13 @@ from autovd.media.motion import MotionConfig
 from autovd.media.renderer import RenderProfile
 from autovd.tools.analysis_spike import get_temporal_analysis_demo
 from autovd.tools.workflow import ClipEditRequest, WorkflowConfig, WorkflowService
+
+_LOCAL_ALLOWED_HOSTS = ("127.0.0.1:*", "localhost:*", "[::1]:*")
+_LOCAL_ALLOWED_ORIGINS = (
+    "http://127.0.0.1:*",
+    "http://localhost:*",
+    "http://[::1]:*",
+)
 
 mcp = MCPServer(
     "AutoVD",
@@ -34,6 +44,31 @@ def _int_env(name: str, default: int) -> int:
 
 def _float_env(name: str, default: float) -> float:
     return float(os.environ.get(name, str(default)))
+
+
+def _csv_env(name: str) -> list[str]:
+    return [value.strip() for value in os.environ.get(name, "").split(",") if value.strip()]
+
+
+def _server_transport_options() -> tuple[str, int, TransportSecuritySettings]:
+    host = os.environ.get("AUTOVD_HOST", "127.0.0.1").strip()
+    if not host:
+        raise ValueError("AUTOVD_HOST must not be empty")
+
+    port = _int_env("AUTOVD_PORT", 8000)
+    if not 1 <= port <= 65_535:
+        raise ValueError("AUTOVD_PORT must be between 1 and 65535")
+
+    allowed_hosts = list(dict.fromkeys([*_LOCAL_ALLOWED_HOSTS, *_csv_env("AUTOVD_ALLOWED_HOSTS")]))
+    allowed_origins = list(
+        dict.fromkeys([*_LOCAL_ALLOWED_ORIGINS, *_csv_env("AUTOVD_ALLOWED_ORIGINS")])
+    )
+    security = TransportSecuritySettings(
+        enable_dns_rebinding_protection=True,
+        allowed_hosts=allowed_hosts,
+        allowed_origins=allowed_origins,
+    )
+    return host, port, security
 
 
 def _build_workflow_service() -> WorkflowService:
@@ -73,6 +108,12 @@ def _build_workflow_service() -> WorkflowService:
 
 
 workflow_service = _build_workflow_service()
+
+
+@mcp.custom_route("/health", methods=["GET"])  # type: ignore[untyped-decorator]
+async def http_health(_request: Request) -> JSONResponse:
+    """Return a public, non-sensitive liveness response for deployment probes."""
+    return JSONResponse({"status": "ok"})
 
 
 @mcp.tool(
@@ -142,12 +183,14 @@ mcp.tool()(get_temporal_analysis_demo)
 
 def main() -> None:
     """Run the remote MCP endpoint using Streamable HTTP."""
+    host, port, transport_security = _server_transport_options()
     mcp.run(
         transport="streamable-http",
-        host="127.0.0.1",
-        port=8000,
+        host=host,
+        port=port,
         stateless_http=True,
         json_response=True,
+        transport_security=transport_security,
     )
 
 

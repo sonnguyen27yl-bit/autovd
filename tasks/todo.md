@@ -4,7 +4,7 @@ Source: `tasks/plan.md`
 
 ## Gate A — Real ChatGPT temporal-analysis proof
 
-> **Execution note (2026-08-18):** the user explicitly approved deferring the remaining real ChatGPT Developer Mode/evaluation checks so deterministic backend work could continue. Gate A is **deferred, not passed**. Backend completion does not convert unknown model quality into a pass.
+> **Execution note (2026-08-18):** the user explicitly approved deferring the remaining real ChatGPT integration/evaluation checks so deterministic backend work could continue. Gate A is **deferred, not passed**. Backend completion does not convert unknown model quality into a pass.
 
 - [x] **Task 1 — Minimal Python/MCP scaffold**
   - [x] Pin current Python/MCP dependencies from authoritative docs.
@@ -15,7 +15,8 @@ Source: `tasks/plan.md`
 - [ ] **Task 2 — ChatGPT temporal-vision spike**
   - [x] Extract ordered timestamped frames from one short fixture clip.
   - [x] Expose timestamp/image evidence through the real MCP protocol.
-  - [ ] Connect the real server in ChatGPT Developer Mode.
+  - [x] Prepare the MCP server for remote server-URL deployment with configurable bind settings, hostname allowlisting, health checks, and a verified container image.
+  - [ ] Connect the real server as an internal ChatGPT plugin/app using the remote MCP URL.
   - [ ] Obtain a structured anomaly interval from real ChatGPT.
   - [ ] Confirm ChatGPT interprets timestamp + image ordering as intended.
 
@@ -73,7 +74,7 @@ Source: `tasks/plan.md`
   - [x] Keep MCP handlers thin and core behavior in testable services/modules.
   - [x] Return rendered MP4 through an MCP resource template/`ResourceLink`.
   - [x] Verify production tool names, file-parameter metadata/schema, workflow results, and existing tools through pytest + MCP Inspector.
-  - [ ] Verify expected tool selection, temporal interpretation, and output UX in real ChatGPT Developer Mode.
+  - [ ] Verify expected tool selection, temporal interpretation, and output UX in a real ChatGPT internal plugin/app session.
 
   Backend/protocol implementation is complete. The final ChatGPT-side behavior belongs to deferred Gate A and is not claimed as passed.
 
@@ -96,10 +97,12 @@ Source: `tasks/plan.md`
   - [ ] Rerun anomaly evaluation against real ChatGPT and confirm cut precision remains acceptable.
   - [x] Maintain CI gates using actual repository commands and pinned Action SHAs.
   - [x] Keep FFmpeg CI setup bounded/retryable rather than allowing an indefinite dependency-install stall.
+  - [x] Build and smoke-test a deployment container exposing the MCP server and `/health` endpoint.
+  - [x] Document the remote HTTPS server-URL deployment path and required public Host allowlist.
   - [x] Update README/spec/architecture/AGENTS with exact current backend state and deferred human gates.
   - [x] Review backend correctness/security/integration/documentation evidence against the project Definition of Done.
 
-  **Backend completion point:** everything that can be verified without a real ChatGPT Developer Mode session and representative human-labeled AI footage is implemented or explicitly documented. Task 10 remains open only because the two real-model evidence items above are part of MVP success, not because deterministic backend work is missing.
+  **Backend completion point:** everything that can be verified without a real ChatGPT internal plugin/app session and representative human-labeled AI footage is implemented or explicitly documented. Task 10 remains open only because the real-model evidence items above are part of MVP success, not because deterministic backend/deployment packaging is missing.
 
 ## Backend Definition of Done evidence
 
@@ -110,6 +113,7 @@ Source: `tasks/plan.md`
 - [x] Strict mypy passes.
 - [x] Real FFmpeg integration behavior is exercised in CI.
 - [x] Running MCP Streamable HTTP endpoint is exercised with MCP Inspector.
+- [x] Deployment Docker image builds and its published-port health endpoint is smoke-tested in CI.
 - [x] Model/file/tool inputs are validated before privileged media operations.
 - [x] No model-controlled shell commands or filesystem paths are accepted.
 - [x] Resource bounds and temporary-job cleanup policy are implemented.
