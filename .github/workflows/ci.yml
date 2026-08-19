@@ -79,6 +79,8 @@ jobs:
               raise SystemExit("AutoVD MCP server did not start")
           PY
 
+          test "$(curl --fail --silent http://127.0.0.1:8000/health)" = '{"status":"ok"}'
+
           npx --yes @modelcontextprotocol/inspector@2.2.0 --cli \
             http://127.0.0.1:8000/mcp --transport http \
             --method tools/list --format json > /tmp/tools.json
@@ -124,3 +126,21 @@ jobs:
           assert '"timestamp_ms=500"' in temporal_text
           assert '"timestamp_ms=1000"' in temporal_text
           PY
+
+      - name: Build deployment container
+        run: docker build --tag autovd-ci .
+
+      - name: Smoke deployment container
+        run: |
+          set -euo pipefail
+          container_id=$(docker run --detach --rm --publish 127.0.0.1:18000:8000 autovd-ci)
+          trap 'docker stop "$container_id" >/dev/null 2>&1 || true' EXIT
+
+          for _ in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:18000/health >/tmp/container-health.json; then
+              break
+            fi
+            sleep 1
+          done
+
+          test "$(cat /tmp/container-health.json)" = '{"status":"ok"}'
